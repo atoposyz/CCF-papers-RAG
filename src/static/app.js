@@ -16,6 +16,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const modelNameInput = document.getElementById('model-name');
     const toast = document.getElementById('toast');
 
+    // ---- Weight Slider ----
+    const vectorWeightSlider = document.getElementById('vector-weight');
+    const weightHint = document.getElementById('weight-hint');
+
+    const updateSliderStyle = () => {
+        const vw = parseInt(vectorWeightSlider.value, 10);
+        const bw = 100 - vw;
+        weightHint.textContent = `Vector ${vw}% · BM25 ${bw}%`;
+        // 更新 CSS 变量，驱动背景颜色渐变
+        vectorWeightSlider.style.setProperty('--val', vw);
+    };
+
+    vectorWeightSlider.addEventListener('input', updateSliderStyle);
+    // 初始化一次
+    updateSliderStyle();
+
+    // ---- Collapsible Settings ----
+    const toggleSettingsBtn = document.getElementById('toggle-settings');
+    const settingsContainer = document.getElementById('settings-container');
+
+    toggleSettingsBtn.addEventListener('click', () => {
+        const isCollapsed = settingsContainer.style.display === 'none';
+        settingsContainer.style.display = isCollapsed ? 'block' : 'none';
+        toggleSettingsBtn.querySelector('.toggle-icon').style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)';
+    });
+
     // ---- State ----
     let currentContextPapers = "";
     let messageHistory = [];
@@ -34,10 +60,17 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         const query = document.getElementById('query-input').value.trim();
-        const venue = document.getElementById('venue-input').value.trim();
+        const venueRaw = document.getElementById('venue-input').value.trim();
         const year = document.getElementById('year-input').value.trim();
         let topK = parseInt(document.getElementById('topk-input').value.trim(), 10);
         if (isNaN(topK) || topK < 1) topK = 5;
+
+        // 解析多选 Venue
+        const venue = venueRaw ? venueRaw.split(',').map(v => v.trim()).filter(v => v) : null;
+
+        const vwRaw = parseInt(vectorWeightSlider.value, 10);
+        const vectorWeight = vwRaw / 100;
+        const bm25Weight = (100 - vwRaw) / 100;
 
         if (!query) return;
 
@@ -51,7 +84,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query, venue, year, top_k: topK })
+                body: JSON.stringify({
+                    query,
+                    venue,
+                    year,
+                    top_k: topK,
+                    vector_weight: vectorWeight,
+                    bm25_weight: bm25Weight
+                })
             });
 
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -93,6 +133,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 linksHtml += `<a href="${paper.dblp_url}" target="_blank" class="card-link dblp-link" title="Open DBLP">📚 DBLP</a>`;
             }
 
+            // Score badges
+            const hybridBadge = `<span class="meta-badge score-hybrid" title="Hybrid RRF Score (higher is better)">⚡ Score: ${paper.hybrid_score}</span>`;
+            const vectorBadge = paper.vector_dist !== null
+                ? `<span class="meta-badge score-vector" title="Vector semantic distance (lower is more similar)">🧠 VecDist: ${paper.vector_dist}</span>`
+                : `<span class="meta-badge score-vector muted" title="Not in vector top results">🧠 Vec: —</span>`;
+            const bm25Badge = paper.bm25_score > 0
+                ? `<span class="meta-badge score-bm25" title="BM25 keyword score (higher is better)">🔤 BM25: ${paper.bm25_score}</span>`
+                : `<span class="meta-badge score-bm25 muted" title="No keyword match">🔤 BM25: —</span>`;
+
             card.innerHTML = `
                 <div class="result-header">
                     <h3 class="result-title">${paper.title}</h3>
@@ -100,11 +149,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="chevron"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </div>
                 </div>
-                <div class="result-meta">
+                <div class="result-tags">
                     <span class="meta-badge venue">${paper.venue}</span>
                     <span class="meta-badge">${paper.year}</span>
                     <span class="meta-badge">${paper.author} (1st Author)</span>
-                    <span class="meta-badge dist">Dist: ${paper.distance}</span>
+                    ${hybridBadge}
+                    ${vectorBadge}
+                    ${bm25Badge}
                 </div>
                 <div class="result-details" style="display: none;">
                     <p class="result-abstract">${paper.abstract}</p>

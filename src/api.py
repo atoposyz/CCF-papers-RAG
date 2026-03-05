@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Union
 from openai import AsyncOpenAI
 from hybrid_search import HybridSearcher
 
@@ -43,9 +43,11 @@ async def startup_event():
 # ================================
 class SearchRequest(BaseModel):
     query: str
-    venue: Optional[str] = None
+    venue: Optional[Union[List[str], str]] = None
     year: Optional[str] = None
     top_k: int = 5
+    vector_weight: float = 0.7
+    bm25_weight: float = 0.3
 
 class ChatMessage(BaseModel):
     role: str
@@ -53,10 +55,10 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
-    context_papers: str # 拼接好的相关论文上下文
-    model: str = "deepseek-chat" # 允许前端选择模型
+    context_papers: str  # 拼接好的相关论文上下文
+    model: str = "deepseek-chat"  # 允许前端选择模型
     api_key: str  # 用户的 API Key，不保存在后端
-    base_url: str = "https://api.deepseek.com/v1" # 支持兼容 OpenAI 接口规范的模型
+    base_url: str = "https://api.deepseek.com/v1"  # 支持兼容 OpenAI 接口规范的模型
 
 # ================================
 # API 路由
@@ -64,81 +66,78 @@ class ChatRequest(BaseModel):
 @app.post("/api/search")
 async def api_search(request: SearchRequest):
     if not searcher:
-        raise HTTPException(status_code=500, detail="Search engine not initialized. Please ensure the vector database is built.")
-    
-    try:
-        # 直接调用底层的 collection 检索数据（这里我们绕过返回纯字符串的方法以拿到结构化数据用于前端渲染）
-        query_embedding = searcher.model.encode(request.query, show_progress_bar=False).tolist()
-        
-        conditions = []
-        if request.year and str(request.year).isdigit():
-            conditions.append({"year": int(request.year)})
-        if request.venue:
-            conditions.append({"venue_abbr": request.venue.lower()})
-            
-        where_clause = None
-        if len(conditions) == 1:
-            where_clause = conditions[0]
-        elif len(conditions) > 1:
-            where_clause = {"$and": conditions}
+        raise HTTPException(
+            status_code=500,
+            detail="Search engine not initialized. Please ensure the vector database is built."
+        )
 
-        kwargs = {
-            "query_embeddings": [query_embedding],
-            "n_results": request.top_k
-        }
-        if where_clause is not None:
-            kwargs["where"] = where_clause
-            
-        results = searcher.collection.query(**kwargs)
+    try:
+        # 处理 venue，如果前端发来逗号分隔字符串也可以兼容（虽然 Pydantic 会优先尝试转 List）
+        venues = request.venue
+        if isinstance(venues, str):
+            venues = [v.strip() for v in venues.split(',') if v.strip()]
         
+        raw_results = searcher.search_hybrid(
+            query=request.query,
+            target_year=request.year,
+            target_venue=venues,
+            top_k=request.top_k,
+            vector_weight=request.vector_weight,
+            bm25_weight=request.bm25_weight
+        )
+
         formatted_results = []
-        if results.get('documents') and results['documents'][0]:
-            for idx in range(len(results['documents'][0])):
-                meta = results['metadatas'][0][idx]
-                dist = results['distances'][0][idx]
-                
-                title = meta.get('title', 'Unknown Title')
-                year = meta.get('year', 'Unknown')
-                venue_abbr = meta.get('venue_abbr', 'Unknown').upper()
-                first_author = meta.get('first_author', 'Unknown')
-                abstract_snippet = meta.get('abstract_snippet', '')
-                doi_url = meta.get('doi_url', '')
-                dblp_url = meta.get('dblp_url', '')
-                
-                if not abstract_snippet.strip():
-                    content = results['documents'][0][idx]
-                    abstract_snippet = content.replace(title, '').strip()[:100] + "..."
-                
-                formatted_results.append({
-                    "id": idx + 1,
-                    "title": title,
-                    "year": year,
-                    "venue": venue_abbr,
-                    "author": first_author,
-                    "abstract": abstract_snippet,
-                    "distance": round(dist, 4),
-                    "doi_url": doi_url,
-                    "dblp_url": dblp_url
-                })
-        
+        for idx, item in enumerate(raw_results):
+            meta = item["meta"]
+            title = meta.get('title', 'Unknown Title')
+            year = meta.get('year', 'Unknown')
+            venue_abbr = meta.get('venue_abbr', 'Unknown').upper()
+            first_author = meta.get('first_author', 'Unknown')
+            abstract_snippet = meta.get('abstract_snippet', '')
+            doi_url = meta.get('doi_url', '')
+            dblp_url = meta.get('dblp_url', '')
+
+            if not abstract_snippet.strip():
+                content = item["doc"]
+                abstract_snippet = content.replace(title, '').strip()[:200] + "..."
+
+            vector_dist = item.get("vector_dist")
+            bm25_score = item.get("bm25_score", 0.0)
+            hybrid_score = item.get("hybrid_score", 0.0)
+
+            formatted_results.append({
+                "id": idx + 1,
+                "title": title,
+                "year": year,
+                "venue": venue_abbr,
+                "author": first_author,
+                "abstract": abstract_snippet,
+                "hybrid_score": round(hybrid_score, 6),
+                "vector_dist": round(vector_dist, 4) if vector_dist is not None else None,
+                "bm25_score": round(bm25_score, 2),
+                "doi_url": doi_url,
+                "dblp_url": dblp_url
+            })
+
         return {"results": formatted_results}
 
     except Exception as e:
         logging.error(f"Search error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/api/chat")
 async def api_chat(request: ChatRequest):
     if not request.api_key:
         raise HTTPException(status_code=401, detail="API Key is required for Chat functionality.")
-    
+
     try:
         # 实例化基于本次请求的 OpenAI Async 客户端
         client = AsyncOpenAI(
             api_key=request.api_key,
             base_url=request.base_url
         )
-        
+
         # 组装 RAG Prompt 注入上下文
         system_prompt = f"""你是一个专业的学术论文检索和阅读助手 (AI RAG Assistant)。
 用户当前正在浏览以下学术论文信息，请基于这些论文内容，专业、严谨且有逻辑地回答用户的问题。
@@ -167,17 +166,18 @@ async def api_chat(request: ChatRequest):
                         content = chunk.choices[0].delta.content
                         # 将数据按照 Server-Sent Events (SSE) 格式返回
                         yield f"data: {json.dumps({'content': content})}\n\n"
-                
+
                 yield "data: [DONE]\n\n"
             except Exception as e:
                 logging.error(f"LLM Stream Error: {e}")
                 yield f"data: {json.dumps({'error': str(e)})}\n\n"
-                
+
         return StreamingResponse(stream_generator(), media_type="text/event-stream")
 
     except Exception as e:
         logging.error(f"Chat error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # ================================
 # 静态文件托管

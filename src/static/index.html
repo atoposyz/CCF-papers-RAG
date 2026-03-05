@@ -34,31 +34,55 @@
     <main class="dashboard">
         <!-- 左侧面板：检索控制 -->
         <section class="search-panel glass-card">
-            <h2>Hybrid Search Engine</h2>
-            <form id="search-form" class="search-form">
-                <div class="input-group">
-                    <input type="text" id="query-input" placeholder="Enter keywords or natural language query..."
-                        required>
-                </div>
-                <div class="filters">
-                    <div class="input-group">
-                        <label for="venue-input">Venue</label>
-                        <input type="text" id="venue-input" placeholder="e.g. dac, icse">
-                    </div>
-                    <div class="input-group">
-                        <label for="year-input">Year</label>
-                        <input type="text" id="year-input" placeholder="e.g. 2024">
-                    </div>
-                    <div class="input-group">
-                        <label for="topk-input">Top K</label>
-                        <input type="number" id="topk-input" placeholder="5" value="5" min="1" max="20">
-                    </div>
-                </div>
-                <button type="submit" class="primary-btn" id="search-btn">
-                    <span>Search Knowledge Base</span>
-                    <div class="spinner" id="search-spinner" style="display: none;"></div>
+            <div class="panel-header">
+                <h2>Hybrid Search Engine</h2>
+                <button class="icon-btn" id="toggle-settings" title="Toggle Search Options">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round" class="toggle-icon">
+                        <polyline points="18 15 12 9 6 15"></polyline>
+                    </svg>
                 </button>
-            </form>
+            </div>
+
+            <div id="settings-container">
+                <form id="search-form" class="search-form compact">
+                    <div class="search-row">
+                        <input type="text" id="query-input" placeholder="Enter keywords or natural language query..."
+                            required>
+                        <button type="submit" class="primary-btn search-submit-btn" id="search-btn">
+                            <span>Search</span>
+                            <div class="spinner" id="search-spinner" style="display: none;"></div>
+                        </button>
+                    </div>
+
+                    <div class="filters-row">
+                        <div class="filter-item">
+                            <label>Venue</label>
+                            <input type="text" id="venue-input" placeholder="dac, icse">
+                        </div>
+                        <div class="filter-item">
+                            <label>Year</label>
+                            <input type="text" id="year-input" placeholder="2024">
+                        </div>
+                        <div class="filter-item">
+                            <label>TopK</label>
+                            <input type="number" id="topk-input" value="5" min="1" max="20">
+                        </div>
+                    </div>
+
+                    <!-- 混合检索权重配置 (精简版) -->
+                    <div class="weight-config-compact">
+                        <div class="weight-slider-row">
+                            <span class="weight-tag vector-tag">🧠 Vector</span>
+                            <input type="range" id="vector-weight" min="0" max="100" value="70" class="weight-slider">
+                            <span class="weight-tag bm25-tag">🔤 BM25</span>
+                        </div>
+                        <div class="weight-hint-row">
+                            <span id="weight-hint">Vector 70% · BM25 30%</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
 
             <div class="search-results" id="results-container">
                 <div class="placeholder-text">
