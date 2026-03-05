@@ -1,0 +1,78 @@
+================================================================================
+>> 测试用例 1: 使用所有过滤条件
+🔍 检索查询 (Query): 'LLM fault injection and reliability analysis'
+📌 检索过滤 (Filters): Year: 2024, Venue: dac
+----------------------------------------------------------------------
+[ Top 1 ] (距离分数 Dist: 1.1997)
+📖 标题: Graph Learning-based Fault Criticality Analysis for Enhancing Functional Safety of E/E Systems
+📅 年份: 2024
+🏢 会议: DAC
+🧑‍🔬 作者 (一作): Sanjay Das
+📝 摘要片段: The increasing complexity of Electrical and Electronic (E/E) systems underscores the need for protective measures to ensure functional safety (FuSa) in high-assurance environments. This entails the identification and fortification of vulnerable nodes to enhance system reliability during mission-critical scenarios. Traditionally, the assessment of E/E system reliability has relied on fault injection (FI) techniques and simulations. However, FI faces challenges in coping with escalating design com
+----------------------------------------------------------------------
+[ Top 2 ] (距离分数 Dist: 1.2146)
+📖 标题: How accurately can soft error impact be estimated in black-box/white-box cases? - a case study with an edge AI SoC -
+📅 年份: 2024
+🏢 会议: DAC
+🧑‍🔬 作者 (一作): Quan Cheng
+📝 摘要片段: Artificial intelligence (AI) edge devices often feature numerous storage units and sequential logic circuits, making them vulnerable to soft errors. For reliable and critical edge AI applications, assessing System-on-Chip (SoC) reliability in advance is essential. Here, there are two cases: a self-designed SoC (white-box), or a commercial off-the-shelf (COTS) chip (black-box). This study uses alpha particle irradiation results on our 22nm AI SoC as a golden reference to estimate soft error impac
+----------------------------------------------------------------------
+[ Top 3 ] (距离分数 Dist: 1.2639)
+📖 标题: SSRESF: Sensitivity-aware Single-particle Radiation Effects Simulation Framework in SoC Platforms based on SVM Algorithm
+📅 年份: 2024
+🏢 会议: DAC
+🧑‍🔬 作者 (一作): Meng Liu
+📝 摘要片段: The ever-expanding scale of integrated circuits has brought about a significant rise in the design risks associated with radiation-resistant integrated circuit chips. Traditional single-particle experimental methods, with their iterative design approach, are increasingly ill-suited for the challenges posed by large-scale integrated circuits. In response, this article introduces a novel sensitivity-aware single-particle radiation effects simulation framework tailored for System-on-Chip platforms.
+----------------------------------------------------------------------
+================================================================================
+>> 测试用例 2: 仅使用自然语言查询 (无任何过滤条件)
+🔍 检索查询 (Query): 'Fault tolerance technology in systolic arrays'
+📌 检索过滤 (Filters): Year: Any, Venue: Any
+----------------------------------------------------------------------
+[ Top 1 ] (距离分数 Dist: 0.9069)
+📖 标题: A Comprehensive Automated Exploration Framework for Systolic Array Designs
+📅 年份: 2023
+🏢 会议: DAC
+🧑‍🔬 作者 (一作): Suhail Basalama
+📝 摘要片段: Many researchers studying the performance tuning of systolic arrays have based their works on oversimplified assumptions like considering only divisors for loop tiling or pruning based on off-chip data communication to reduce the design space. In this paper, we present a comprehensive design space exploration tool named Odyssey for systolic array optimization. Odyssey results show that limiting tiling factors to only divisors of the problem size can cause up to 39% performance loss, and pruning 
+----------------------------------------------------------------------
+[ Top 2 ] (距离分数 Dist: 1.0431)
+📖 标题: Fault-Tolerance-Oriented Physical Design for Fully Programmable Valve Array Biochips
+📅 年份: 2023
+🏢 会议: DAC
+🧑‍🔬 作者 (一作): Genggeng Liu
+📝 摘要片段: As a new generation of flow-based microfluidics, the Fully Programmable Valve Array (FPVA) biochips have become a popular biochemical experimental platform that provide higher flexibility and programmability. Due to environmental and human factors, however, there are usually some physical faults in the manufacturing process such as channel blockage and leakage, which, undoubtedly, can affect the results of bioassays and even cause execution failure. Accordingly, we focus on the fault-tolerant de
+----------------------------------------------------------------------
+[ Top 3 ] (距离分数 Dist: 1.1113)
+📖 标题: RASA: Efficient Register-Aware Systolic Array Matrix Engine for CPU
+📅 年份: 2021
+🏢 会议: DAC
+🧑‍🔬 作者 (一作): Geonhwa Jeong
+📝 摘要片段: As AI-based applications become pervasive, CPU vendors are starting to incorporate matrix engines within the datapath to boost efficiency. Systolic arrays have been the premier architectural choice as matrix engines in offload accelerators. However, we demonstrate that incorporating them inside CPUs can introduce under-utilization and stalls due to limited register storage to amortize the fill and drain times of the array. To address this, we propose RASA, Register-Aware Systolic Array. We devel
+----------------------------------------------------------------------
+================================================================================
+>> 测试用例 3: 进一步测试相关匹配 (无过滤条件)
+🔍 检索查询 (Query): 'Python script optimization and parallel processing'
+📌 检索过滤 (Filters): Year: Any, Venue: Any
+----------------------------------------------------------------------
+[ Top 1 ] (距离分数 Dist: 0.9048)
+📖 标题: Productivity, portability, performance: data-centric Python
+📅 年份: 2021
+🏢 会议: SC
+🧑‍🔬 作者 (一作): Alexandros Nikolaos Ziogas
+📝 摘要片段: Python has become the de facto language for scientific computing. Programming in Python is highly productive, mainly due to its rich science-oriented software ecosystem built around the NumPy module. As a result, the demand for Python support in High Performance Computing (HPC) has skyrocketed. However, the Python language itself does not necessarily offer high performance. In this work, we present a workflow that retains Python's high productivity while achieving portable performance across dif
+----------------------------------------------------------------------
+[ Top 2 ] (距离分数 Dist: 0.9658)
+📖 标题: Automatic synthesis of parallel unix commands and pipelines with KumQuat
+📅 年份: 2022
+🏢 会议: PPOPP
+🧑‍🔬 作者 (一作): Jiasi Shen
+📝 摘要片段: We present KumQuat, a system for automatically generating data-parallel implementations of Unix shell commands and pipelines. The generated parallel versions split input streams, execute multiple instantiations of the original pipeline commands to process the splits in parallel, then combine the resulting parallel outputs to produce the final output stream. KumQuat automatically synthesizes the combine operators, with a domain-specific combiner language acting as a strong regularizer that promot
+----------------------------------------------------------------------
+[ Top 3 ] (距离分数 Dist: 1.0267)
+📖 标题: Legate Sparse: Distributed Sparse Computing in Python
+📅 年份: 2023
+🏢 会议: SC
+🧑‍🔬 作者 (一作): Rohan Yadav
+📝 摘要片段: The sparse module of the popular SciPy Python library is widely used across applications in scientific computing, data analysis and machine learning. The standard implementation of SciPy is restricted to a single CPU and cannot take advantage of modern distributed and accelerated computing resources. We introduce Legate Sparse, a system that transparently distributes and accelerates unmodified sparse matrix-based SciPy programs across clusters of CPUs and GPUs, and composes with cuNumeric, a dis
+----------------------------------------------------------------------
